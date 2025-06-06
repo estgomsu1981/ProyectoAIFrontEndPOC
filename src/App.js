@@ -5,11 +5,9 @@ function App() {
   const [token, setToken] = useState('');
   const [error, setError] = useState('');
 
-  const login = async () => {
+  const login = useCallback(async () => {
     try {
-
-
-      const res = await fetch('https://catalogo-api-i7nt.onrender.com/login', {
+        const res = await fetch('https://catalogo-api-i7nt.onrender.com/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({
@@ -29,7 +27,7 @@ function App() {
     } catch (err) {
       setError('Error de red');
     }
-  };
+ }, []);
 
 const getProductos = useCallback(async (tok) => {
   try {
@@ -48,7 +46,7 @@ const getProductos = useCallback(async (tok) => {
   } catch (err) {
     console.error("Error al cargar productos", err);
   }
-}, []);
+}, [login]);
 
 
 
