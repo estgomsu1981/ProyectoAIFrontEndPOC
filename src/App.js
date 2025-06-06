@@ -60,7 +60,7 @@ useEffect(() => {
     console.log("No hay token en localStorage, se hará login");
     login(); // solo si no hay token guardado
   }
-}, [getProductos]);
+}, [getProductos, login]);
 
   useEffect(() => {
     if (token) {
