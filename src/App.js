@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 function App() {
   const [productos, setProductos] = useState([]);
@@ -31,7 +31,7 @@ function App() {
     }
   };
 
-const getProductos = async (tok) => {
+const getProductos = useCallback(async (tok) => {
   try {
     const res = await fetch("https://catalogo-api-i7nt.onrender.com/productos", {
       headers: {
@@ -48,7 +48,8 @@ const getProductos = async (tok) => {
   } catch (err) {
     console.error("Error al cargar productos", err);
   }
-};
+}, []);
+
 
 
 useEffect(() => {
@@ -61,7 +62,7 @@ useEffect(() => {
     console.log("No hay token en localStorage, se hará login");
     login(); // solo si no hay token guardado
   }
-}, []);
+}, [getProductos]);
 
   useEffect(() => {
     if (token) {
