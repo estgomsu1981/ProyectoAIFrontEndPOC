@@ -2,8 +2,10 @@ import React, { useState, useEffect, useCallback } from 'react';
 
 function App() {
   const [productos, setProductos] = useState([]);
-  const [, setToken] = useState(''); // Solo se usa setToken
+  const [token, setToken] = useState('');
   const [error, setError] = useState('');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
 
   const login = useCallback(async () => {
     try {
@@ -11,21 +13,21 @@ function App() {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({
-          username: 'admin',
-          password: '1234'
+        username,
+        password
         })
       });
 
       const data = await res.json();
-      localStorage.setItem("token", data.access_token);
-      setToken(data.access_token);
-      if (!res.ok) {
-        setError(data.detail || 'Error al iniciar sesión');
+      if (res.ok) {
+          localStorage.setItem("token", data.access_token);
+          setToken(data.access_token);
+          setError('');
       }
     } catch (err) {
       setError('Error de red');
     }
-  }, []);
+}, [username, password]);
 
   const getProductos = useCallback(async (tok) => {
     try {
@@ -52,25 +54,55 @@ function App() {
     if (storedToken) {
       setToken(storedToken);
       getProductos(storedToken);
-    } else {
-      console.log("No hay token en localStorage, se hará login");
-      login();
     }
-  }, [getProductos, login]);
+  }, [getProductos]);
 
-  return (
-    <div style={{ padding: '2rem' }}>
-      <h1>Catálogo de Productos</h1>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      <ul>
-        {productos.map((p) => (
-          <li key={p.id}>
-            {p.nombre} — Cantidad: {p.cantidad}
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
+return (
+  <div style={{ padding: '2rem' }}>
+   {!token ? (
+      // 🔐 FORMULARIO DE LOGIN
+      <form onSubmit={(e) => { e.preventDefault(); login(); }}>
+        <h2>Iniciar sesión</h2>
+        <input
+          type="text"
+          placeholder="Usuario"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          required
+        />
+        <input
+          type="password"
+          placeholder="Contraseña"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+        <button type="submit">Entrar</button>
+        {error && <p style={{ color: 'red' }}>{error}</p>}
+      </form>
+    ) : (
+      // 🛍️ CATÁLOGO DE PRODUCTOS
+      <>
+        <h1>Catálogo de Productos</h1>
+        {error && <p style={{ color: 'red' }}>{error}</p>}
+        <ul>
+          {productos.map((p) => (
+            <li key={p.id}>
+              {p.nombre} — Cantidad: {p.cantidad}
+            </li>
+          ))}
+        </ul>
+        <button onClick={() => {
+          localStorage.removeItem("token");
+          window.location.reload();
+        }}>
+          Cerrar sesión
+        </button>
+      </>
+    )}
+  </div>
+);
+
 }
 
 export default App;
