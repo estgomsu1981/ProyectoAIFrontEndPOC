@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 
 function App() {
   const [productos, setProductos] = useState([]);
-  const [token, setToken] = useState('');
+  const [, setToken] = useState(''); // Solo se usa setToken
   const [error, setError] = useState('');
 
   const login = useCallback(async () => {
@@ -12,15 +12,14 @@ function App() {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({
           username: 'admin',
-          password: '1234',
-        }),
+          password: '1234'
+        })
       });
 
       const data = await res.json();
-      if (res.ok) {
-        localStorage.setItem('token', data.access_token);
-        setToken(data.access_token);
-      } else {
+      localStorage.setItem("token", data.access_token);
+      setToken(data.access_token);
+      if (!res.ok) {
         setError(data.detail || 'Error al iniciar sesión');
       }
     } catch (err) {
@@ -28,37 +27,37 @@ function App() {
     }
   }, []);
 
-  useEffect(() => {
-    const storedToken = localStorage.getItem('token');
-    console.log('TOKEN ENCONTRADO:', storedToken);
-
-    const getProductos = async (tok) => {
-      try {
-        const res = await fetch('https://catalogo-api-i7nt.onrender.com/productos', {
-          headers: {
-            Authorization: `Bearer ${tok}`,
-          },
-        });
-        if (res.status === 401) {
-          localStorage.removeItem('token');
-          login();
-          return;
-        }
-        const data = await res.json();
-        setProductos(data);
-      } catch (err) {
-        console.error('Error al cargar productos', err);
+  const getProductos = useCallback(async (tok) => {
+    try {
+      const res = await fetch("https://catalogo-api-i7nt.onrender.com/productos", {
+        headers: {
+          Authorization: `Bearer ${tok}`,
+        },
+      });
+      if (res.status === 401) {
+        localStorage.removeItem("token");
+        login();
+        return;
       }
-    };
+      const data = await res.json();
+      setProductos(data);
+    } catch (err) {
+      console.error("Error al cargar productos", err);
+    }
+  }, [login]);
+
+  useEffect(() => {
+    const storedToken = localStorage.getItem("token");
+    console.log("TOKEN ENCONTRADO:", storedToken);
 
     if (storedToken) {
       setToken(storedToken);
       getProductos(storedToken);
     } else {
-      console.log('No hay token en localStorage, se hará login');
+      console.log("No hay token en localStorage, se hará login");
       login();
     }
-  }, [login]);
+  }, [getProductos, login]);
 
   return (
     <div style={{ padding: '2rem' }}>
